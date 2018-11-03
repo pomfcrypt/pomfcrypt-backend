@@ -1,0 +1,58 @@
+basePath: /api/v1
+definitions:
+  model.FileResponse:
+    properties:
+      hash:
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+      uploaded_at:
+        type: integer
+    type: object
+  routes.APIErrorMessage:
+    properties:
+      error:
+        type: error
+      message:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact:
+    email: mail@fronbasal.de
+    name: Daniel Malik
+    url: https://github.com/pomfcrypt/pomfcrypt
+  description: PomfCrypt is a service which offers simple encrypted file uploading
+  license:
+    name: MIT License
+  termsOfService: https://github.com/pomfcrypt/pomfcrypt
+  title: PomfCrypt Backend
+  version: "0.1"
+paths:
+  /data:
+    put:
+      consumes:
+      - multipart/form-data
+      description: Upload a new file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.FileResponse'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/routes.APIErrorMessage'
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/routes.APIErrorMessage'
+            type: object
+      summary: Upload route
+swagger: "2.0"
