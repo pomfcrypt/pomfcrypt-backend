@@ -35,7 +35,16 @@ paths:
     put:
       consumes:
       - multipart/form-data
+      - application/json
+      - application/x-www-form-urlencoded
       description: Upload a new file
+      parameters:
+      - description: Uploaded file
+        in: body
+        name: file
+        required: true
+        schema:
+          type: object
       produces:
       - application/json
       responses:
