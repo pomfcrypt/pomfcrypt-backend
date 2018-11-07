@@ -1,5 +1,8 @@
 # PomfCrypt
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/pomfcrypt/pomfcrypt-backend)](https://goreportcard.com/report/github.com/pomfcrypt/pomfcrypt-backend)
+[![Maintainability](https://api.codeclimate.com/v1/badges/3a7bbe109f8abf143c80/maintainability)](https://codeclimate.com/github/pomfcrypt/pomfcrypt-backend/maintainability)
+
 This repository is part of the [PomfCrypt](/pomfcrypt) project. It holds the code for the main API and backend of PomfCrypt.
 
 ## Technology
