@@ -1,8 +1,8 @@
 package main
 
 import (
-	_ "./docs"
 	"github.com/gin-gonic/gin"
+	_ "github.com/pomfcrypt/pomfcrypt-backend/docs"
 	"github.com/pomfcrypt/pomfcrypt-backend/routes"
 	"github.com/spf13/viper"
 	"github.com/swaggo/gin-swagger"
@@ -29,7 +29,7 @@ type PomfEngine struct {
 
 func main() {
 	// Initialize a Gin Engine (web server)
-	engine := PomfEngine{GinEngine: gin.New(), Controller: routes.NewController()}
+	engine := PomfEngine{GinEngine: gin.Default(), Controller: routes.NewController(&routes.Settings{MaxSize: 256000000, FilenameLength: 4, UploadsDirectory: "uploads"})}
 
 	// Initialize viper (configuration management)
 	viper.SetConfigName("config")
@@ -51,7 +51,7 @@ func main() {
 	{
 		dataApi := v1.Group("/data")
 		{
-			dataApi.PUT("/", engine.Controller.Upload)
+			dataApi.PUT("", engine.Controller.Upload)
 		}
 	}
 
