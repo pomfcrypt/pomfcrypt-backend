@@ -1,8 +1,7 @@
 package model
 
 type FileResponse struct {
-	Message    string `json:"message"`
-	Hash       string `json:"hash"`
-	Name       string `json:"name"`
-	UploadedAt int64  `json:"uploaded_at"`
+	Hash       [32]byte `json:"hash"`
+	Filename   string   `json:"filename"`
+	UploadedAt int64    `json:"uploaded_at"`
 }

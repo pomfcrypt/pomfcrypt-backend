@@ -29,7 +29,7 @@ type PomfEngine struct {
 
 func main() {
 	// Initialize a Gin Engine (web server)
-	engine := PomfEngine{GinEngine: gin.Default(), Controller: routes.NewController(&routes.Settings{MaxSize: 256000000, FilenameLength: 4, UploadsDirectory: "uploads"})}
+	engine := PomfEngine{GinEngine: gin.Default(), Controller: routes.NewController(&routes.Settings{MaxSize: 256000000, FilenameLength: 4, UploadsDirectory: "uploads", Salt: "$1salt$!"})}
 
 	// Initialize viper (configuration management)
 	viper.SetConfigName("config")

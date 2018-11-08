@@ -9,6 +9,7 @@ import (
 type Settings struct {
 	MaxSize          int64  `json:"max_size"`
 	FilenameLength   int    `json:"filename_length"`
+	Salt             string `json:"salt"`
 	UploadsDirectory string `json:"uploads_directory"`
 }
 
