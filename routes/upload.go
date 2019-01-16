@@ -9,7 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
-	"github.com/gin-gonic/gin"
+	"github.com/kataras/iris"
 	"github.com/pomfcrypt/pomfcrypt-backend/model"
 	"github.com/pomfcrypt/pomfcrypt-backend/util"
 	"golang.org/x/crypto/pbkdf2"
@@ -32,24 +32,24 @@ import (
 // @Failure 400 {object} routes.APIErrorMessage
 // @Router /data [put]
 // @Param  file body string true "Uploaded file"
-func (ctl *Controller) Upload(c *gin.Context) {
+func (ctl *Controller) Upload(c iris.Context) {
 	// Check if a password and a file is given, first
-	password, isSet := c.GetPostForm("password")
-	if !isSet {
+	password := c.PostValue("password")
+	if password == "" {
 		NewAPIError("Failed to retrieve password", errors.New("password was not set")).Throw(c, 400)
 		return
 	}
 	// Get the posted file
-	postFile, err := c.FormFile("file")
+	_, postFileHeader, err := c.FormFile("file")
 	if err != nil {
 		NewAPIError("Failed to receive file", err).Throw(c, 400)
 		return
 	}
-	if postFile.Size > ctl.Settings.MaxSize {
+	if postFileHeader.Size > ctl.Settings.MaxSize {
 		NewAPIError("File is too large", err).Throw(c, 400)
 		return
 	}
-	file, err := postFile.Open()
+	file, err := postFileHeader.Open()
 	if err != nil {
 		NewAPIError("Failed to open file", err).Throw(c, 500)
 		return
@@ -71,7 +71,7 @@ func (ctl *Controller) Upload(c *gin.Context) {
 	// Close the file after the upload is done
 	defer file.Close()
 	// Sanitize input string
-	postFile.Filename = html.EscapeString(postFile.Filename)
+	postFileHeader.Filename = html.EscapeString(postFileHeader.Filename)
 
 	// Create the output file stream
 	outFile, err := os.Create(ctl.BuildPath(fileName))
@@ -86,14 +86,14 @@ func (ctl *Controller) Upload(c *gin.Context) {
 	// Create the length header
 	lengthHeader := make([]byte, 2)
 	// Put the (sanitized) file name into the length header
-	binary.BigEndian.PutUint16(lengthHeader, uint16(len([]byte(postFile.Filename))))
+	binary.BigEndian.PutUint16(lengthHeader, uint16(len([]byte(postFileHeader.Filename))))
 
 	// Create a headers variable containing all relevant headers for the file
 	var headers []byte
 	// Append the generated lengthHeader to the headers first
 	headers = append(headers, lengthHeader...)
 	// Append the name of the file
-	headers = append(headers, []byte(postFile.Filename)...)
+	headers = append(headers, []byte(postFileHeader.Filename)...)
 
 	// Create the integrity-ensuring pbkdf2 key out of the salt and the given password utilizing SHA256
 	key := pbkdf2.Key([]byte(password), []byte(ctl.Settings.Salt), 4096, 16, sha256.New)
@@ -162,5 +162,6 @@ func (ctl *Controller) Upload(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, model.FileResponse{Filename: fileName, UploadedAt: fileInfo.ModTime().Unix(), Hash: sha256.Sum256(finalBytes)})
+	c.StatusCode(201)
+	c.JSON(model.FileResponse{Filename: fileName, UploadedAt: fileInfo.ModTime().Unix(), Hash: sha256.Sum256(finalBytes)})
 }

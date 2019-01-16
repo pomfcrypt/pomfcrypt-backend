@@ -1,12 +1,9 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	_ "github.com/pomfcrypt/pomfcrypt-backend/docs"
+	"github.com/kataras/iris"
 	"github.com/pomfcrypt/pomfcrypt-backend/routes"
 	"github.com/spf13/viper"
-	"github.com/swaggo/gin-swagger"
-	"github.com/swaggo/gin-swagger/swaggerFiles"
 )
 
 // PomfCrypt Backend Open API specification information
@@ -23,13 +20,13 @@ import (
 
 // PomfEngine is a container struct which holds the API routing engine and the API route controller
 type PomfEngine struct {
-	GinEngine  *gin.Engine
+	IrisEngine *iris.Application
 	Controller *routes.Controller
 }
 
 func main() {
 	// Initialize a Gin Engine (web server)
-	engine := PomfEngine{GinEngine: gin.Default(), Controller: routes.NewController(&routes.Settings{MaxSize: 256000000, FilenameLength: 4, UploadsDirectory: "uploads", Salt: "$1salt$!"})}
+	engine := PomfEngine{IrisEngine: iris.Default(), Controller: routes.NewController(&routes.Settings{MaxSize: 256000000, FilenameLength: 4, UploadsDirectory: "uploads", Salt: "$1salt$!"})}
 
 	// Initialize viper (configuration management)
 	viper.SetConfigName("config")
@@ -41,20 +38,13 @@ func main() {
 	// Automatically bind environment variables to the configuration
 	viper.AutomaticEnv()
 
-	// Respond with the generated swagger documentation
-	engine.GinEngine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// Provide information about the project as index
-	engine.GinEngine.GET("/", func(c *gin.Context) { c.String(200, "https://github.com/pomfcrypt/pomfcrypt-backend") })
+	engine.IrisEngine.Get("/", func(c iris.Context) { c.JSON("https://github.com/pomfcrypt/pomfcrypt-backend") })
 
-	// Create the API group
-	v1 := engine.GinEngine.Group("/api/v1")
-	{
-		dataApi := v1.Group("/data")
-		{
-			dataApi.PUT("", engine.Controller.Upload)
-		}
-	}
+	// Create the API group ("party")
+	api := engine.IrisEngine.Party("/api/v1/")
 
-	// Run the server on the http port 3000
-	engine.GinEngine.Run(":3000")
+	api.Put("/file", engine.Controller.Upload)
+
+	engine.IrisEngine.Run(iris.Addr("127.0.0.1:3000"), iris.WithCharset("UTF-8"))
 }

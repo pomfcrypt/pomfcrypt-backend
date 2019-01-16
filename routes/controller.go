@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/kataras/iris"
 	"github.com/sirupsen/logrus"
 	"path/filepath"
 )
@@ -32,7 +33,10 @@ type APIErrorMessage struct {
 
 func NewAPIError(message string, error error) *APIErrorMessage { return &APIErrorMessage{Message: message, Error: error} }
 
-func (e *APIErrorMessage) Throw(c *gin.Context, status int) { c.JSON(status, e) }
+func (e *APIErrorMessage) Throw(c iris.Context, status int) {
+	c.StatusCode(status)
+	c.JSON(e)
+}
 
 func (c *Controller) BuildPath(path string) string {
 	absPath, err := filepath.Abs(c.Settings.UploadsDirectory + "/" + path)
