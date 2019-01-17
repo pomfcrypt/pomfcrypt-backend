@@ -3,7 +3,8 @@ package main
 import (
 	"github.com/kataras/iris"
 	"github.com/pomfcrypt/pomfcrypt-backend/routes"
-	"github.com/spf13/viper"
+	"github.com/sirupsen/logrus"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 // PomfCrypt Backend Open API specification information
@@ -20,31 +21,43 @@ import (
 
 // PomfEngine is a container struct which holds the API routing engine and the API route controller
 type PomfEngine struct {
-	IrisEngine *iris.Application
+	App        *iris.Application
 	Controller *routes.Controller
 }
 
-func main() {
-	// Initialize a Gin Engine (web server)
-	engine := PomfEngine{IrisEngine: iris.Default(), Controller: routes.NewController(&routes.Settings{MaxSize: 256000000, FilenameLength: 4, UploadsDirectory: "uploads", Salt: "$1salt$!"})}
+// Kingpin CLI flag definitions
+var (
+	debug            = kingpin.Flag("debug", "Enable debug output").Envar("POMF_DEBUG").Short('v').Bool()
+	maxSize          = kingpin.Flag("max-size", "Set maximum file size in bytes").Envar("POMF_MAX_SIZE").Default("256000000").Int64()
+	filenameLength   = kingpin.Flag("filename-length", "Set random filename length").Envar("POMF_LEN_FILENAME").Default("4").Int()
+	uploadsDirectory = kingpin.Flag("directory", "Upload directory").Short('d').Envar("POMF_DIR").Default("uploads").ExistingDir()
+	salt             = kingpin.Flag("salt", "Set salt for encryption").Short('s').Envar("POMF_SALT").Default("salt").String()
+)
 
-	// Initialize viper (configuration management)
-	viper.SetConfigName("config")
-	// Use yaml as the configuration language
-	viper.SetConfigType("yaml")
-	// Search for configuration in the following paths
-	viper.AddConfigPath(".")
-	viper.AddConfigPath("/etc/pomfcrypt/")
-	// Automatically bind environment variables to the configuration
-	viper.AutomaticEnv()
+func main() {
+	// Parse the CLI parameters given
+	kingpin.Parse()
+
+	// Filter to debug level if --debug is provided as console flag
+	if *debug {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
+
+	// Initialize a Gin Engine (web server)
+	engine := PomfEngine{App: iris.Default(), Controller: routes.NewController(&routes.Settings{MaxSize: *maxSize, FilenameLength: *filenameLength, UploadsDirectory: *uploadsDirectory, Salt: "$1" + *salt + "$!"})}
+	logrus.Debug("Initialized web framework and controller")
 
 	// Provide information about the project as index
-	engine.IrisEngine.Get("/", func(c iris.Context) { c.JSON("https://github.com/pomfcrypt/pomfcrypt-backend") })
+	engine.App.Get("/", func(c iris.Context) { c.JSON("https://github.com/pomfcrypt/pomfcrypt-backend") })
 
 	// Create the API group ("party")
-	api := engine.IrisEngine.Party("/api/v1/")
+	api := engine.App.Party("/api/v1/")
 
+	// /api/v1/file API route (upload)
 	api.Put("/file", engine.Controller.Upload)
 
-	engine.IrisEngine.Run(iris.Addr("127.0.0.1:3000"), iris.WithCharset("UTF-8"))
+	logrus.Debug("Attempting to run server")
+	if err := engine.App.Run(iris.Addr("127.0.0.1:3000"), iris.WithCharset("UTF-8")); err != nil {
+		logrus.Fatal("Failed to run server: ", err)
+	}
 }

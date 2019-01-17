@@ -13,6 +13,7 @@ import (
 	"github.com/kataras/iris"
 	"github.com/pomfcrypt/pomfcrypt-backend/model"
 	"github.com/pomfcrypt/pomfcrypt-backend/util"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/pbkdf2"
 	"html"
 	"io"
@@ -69,6 +70,7 @@ func (ctl *Controller) Upload(c iris.Context) {
 			fileExists = false
 		}
 	}
+	logrus.Debug("Using filename ", fileName)
 	// Close the file after the upload is done
 	defer file.Close()
 	// Sanitize input string
@@ -169,6 +171,7 @@ func (ctl *Controller) Upload(c iris.Context) {
 		NewAPIError("Failed to read output file", err).Throw(c, 500)
 		return
 	}
+	logrus.Debug("Wrote encrypted data to ", outFile.Name())
 
 	c.StatusCode(201)
 	hashSum := sha256.Sum256(finalBytes)
