@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"github.com/kataras/iris"
 	"github.com/pomfcrypt/pomfcrypt-backend/model"
 	"github.com/pomfcrypt/pomfcrypt-backend/util"
@@ -128,7 +129,10 @@ func (ctl *Controller) Upload(c iris.Context) {
 	// Create a writer for the key HMAC
 	streamOut := io.MultiWriter(keyHmac, outFile)
 	// Write to the created writer
-	streamOut.Write(iv)
+	if _, err := streamOut.Write(iv); err != nil {
+		NewAPIError("Failed to write to stream", err).Throw(c, 500)
+		return
+	}
 	// Create a StreamWriter for the cipherStream
 	streamWriter := &cipher.StreamWriter{S: cipherStream, W: streamOut}
 	// Create the CFB Reader
@@ -136,11 +140,15 @@ func (ctl *Controller) Upload(c iris.Context) {
 	// Copy from the streamWriter to the cfbReader
 	if _, err := io.Copy(streamWriter, cfbReader); err != nil {
 		NewAPIError("Failed to write to cfbReader", err).Throw(c, 500)
+		return
 	}
 	// Get the calculated HMAC sum
 	sum := keyHmac.Sum(nil)
 	// Write the sum to the file
-	outFile.Write(sum)
+	if _, err := outFile.Write(sum); err != nil {
+		NewAPIError("Failed to write to output file", err).Throw(c, 500)
+		return
+	}
 
 	// Stat the output file
 	fileInfo, err := outFile.Stat()
@@ -163,5 +171,10 @@ func (ctl *Controller) Upload(c iris.Context) {
 	}
 
 	c.StatusCode(201)
-	c.JSON(model.FileResponse{Filename: fileName, UploadedAt: fileInfo.ModTime().Unix(), Hash: sha256.Sum256(finalBytes)})
+	hashSum := sha256.Sum256(finalBytes)
+	c.JSON(model.FileResponse{
+		Filename:   fileName,
+		UploadedAt: fileInfo.ModTime().Unix(),
+		Hash:       fmt.Sprintf("%x", hashSum),
+	})
 }
