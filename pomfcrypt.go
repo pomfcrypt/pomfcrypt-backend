@@ -36,6 +36,7 @@ var (
 
 func main() {
 	// Parse the CLI parameters given
+	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
 
 	// Filter to debug level if --debug is provided as console flag

@@ -5,6 +5,10 @@
 
 This repository is part of the [PomfCrypt](/pomfcrypt) project. It holds the code for the main API and backend of PomfCrypt.
 
+## Configuration
+
+Please see (docs/configuration.md)[docs/configuration.md]
+
 ## Technology
 
 The backend is written in Golang. For more detailed documentation about the cryptography, refer to the [meta repository](/pomfcrypt/pomfcrypt/).
