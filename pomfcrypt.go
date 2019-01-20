@@ -1,3 +1,5 @@
+//go:generate swagger generate spec
+
 package main
 
 import (
@@ -6,18 +8,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
-
-// PomfCrypt Backend Open API specification information
-// @title PomfCrypt Backend
-// @version 0.1
-// @description PomfCrypt is a service which offers simple encrypted file uploading
-// @termsOfService https://github.com/pomfcrypt/pomfcrypt
-// @contact.name Daniel Malik
-// @contact.url https://github.com/pomfcrypt/pomfcrypt
-// @contact.email mail@fronbasal.de
-// @license.name MIT License
-// @host localhost:3000
-// @BasePath /api/v1
 
 // PomfEngine is a container struct which holds the API routing engine and the API route controller
 type PomfEngine struct {

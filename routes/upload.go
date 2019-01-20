@@ -22,18 +22,6 @@ import (
 	"strconv"
 )
 
-// Upload doc
-// @Summary Upload route
-// @Description Upload a new file
-// @Accept mpfd
-// @Accept json
-// @Accept x-www-form-urlencoded
-// @Produce json
-// @Success 200 {object} model.FileResponse
-// @Failure 500 {object} routes.APIErrorMessage
-// @Failure 400 {object} routes.APIErrorMessage
-// @Router /data [put]
-// @Param  file body string true "Uploaded file"
 func (ctl *Controller) Upload(c iris.Context) {
 	// Check if a password and a file is given, first
 	password := c.PostValue("password")
@@ -47,10 +35,12 @@ func (ctl *Controller) Upload(c iris.Context) {
 		NewAPIError("Failed to receive file", err).Throw(c, 400)
 		return
 	}
+	// Check for file size
 	if postFileHeader.Size > ctl.Settings.MaxSize {
 		NewAPIError("File is too large", err).Throw(c, 400)
 		return
 	}
+	// Open the given file
 	file, err := postFileHeader.Open()
 	if err != nil {
 		NewAPIError("Failed to open file", err).Throw(c, 500)
