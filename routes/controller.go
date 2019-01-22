@@ -12,13 +12,19 @@ type Settings struct {
 	FilenameLength   int    `json:"filename_length"`
 	Salt             string `json:"salt"`
 	UploadsDirectory string `json:"uploads_directory"`
+	Debug            bool   `json:"debug"`
 }
+
+var debug = false
 
 type Controller struct {
 	Settings *Settings `json:"settings"`
 }
 
-func NewController(settings *Settings) *Controller { return &Controller{Settings: settings} }
+func NewController(settings *Settings) *Controller {
+	debug = settings.Debug
+	return &Controller{Settings: settings}
+}
 
 type APIMessage struct{ Message string `json:"message"` }
 
@@ -35,7 +41,13 @@ func NewAPIError(message string, error error) *APIErrorMessage { return &APIErro
 
 func (e *APIErrorMessage) Throw(c iris.Context, status int) {
 	c.StatusCode(status)
-	c.JSON(e)
+	if debug {
+		// Throw whole error (marshal details)
+		c.JSON(e)
+	} else {
+		// Disable verbose error output
+		c.JSON(iris.Map{"message": e.Message})
+	}
 }
 
 func (ctl *Controller) BuildPath(path string) string {

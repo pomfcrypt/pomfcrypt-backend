@@ -17,11 +17,12 @@ type PomfEngine struct {
 
 // Kingpin CLI flag definitions
 var (
-	debug            = kingpin.Flag("debug", "Enable debug output").Envar("POMF_DEBUG").Short('v').Bool()
+	verbose          = kingpin.Flag("verbose", "Enable verbose output").Envar("POMF_VERBOSE").Short('v').Bool()
 	maxSize          = kingpin.Flag("max-size", "Set maximum file size in bytes").Envar("POMF_MAX_SIZE").Default("256000000").Int64()
 	filenameLength   = kingpin.Flag("filename-length", "Set random filename length").Envar("POMF_LEN_FILENAME").Default("4").Int()
 	uploadsDirectory = kingpin.Flag("directory", "Upload directory").Short('d').Envar("POMF_DIR").Default("uploads").ExistingDir()
 	salt             = kingpin.Flag("salt", "Set salt for encryption").Short('s').Envar("POMF_SALT").Default("salt").String()
+	debug            = kingpin.Flag("debug", "Enable debug mode").Envar("POMF_DEBUG").Bool()
 )
 
 func main() {
@@ -29,13 +30,17 @@ func main() {
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
 
-	// Filter to debug level if --debug is provided as console flag
 	if *debug {
+		logrus.Warn("Debug mode is activated!")
+	}
+
+	// Filter to verbose level if --verbose is provided as console flag
+	if *verbose {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
 
 	// Initialize a Gin Engine (web server)
-	engine := PomfEngine{App: iris.Default(), Controller: routes.NewController(&routes.Settings{MaxSize: *maxSize, FilenameLength: *filenameLength, UploadsDirectory: *uploadsDirectory, Salt: "$1" + *salt + "$!"})}
+	engine := PomfEngine{App: iris.Default(), Controller: routes.NewController(&routes.Settings{MaxSize: *maxSize, FilenameLength: *filenameLength, UploadsDirectory: *uploadsDirectory, Salt: "$1" + *salt + "$!", Debug: *debug})}
 	logrus.Debug("Initialized web framework and controller")
 
 	// Provide information about the project as index
