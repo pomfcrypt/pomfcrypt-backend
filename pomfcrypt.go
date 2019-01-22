@@ -46,6 +46,8 @@ func main() {
 
 	// /api/v1/file API route (upload)
 	api.Put("/file", engine.Controller.Upload)
+	// /api/v1/file/:name API route (retrieve)
+	api.Post("/file/{name:string}", engine.Controller.Retrieve)
 
 	logrus.Debug("Attempting to run server")
 	if err := engine.App.Run(iris.Addr("127.0.0.1:3000"), iris.WithCharset("UTF-8")); err != nil {

@@ -25,7 +25,7 @@ import (
 func (ctl *Controller) Upload(c iris.Context) {
 	// Check if a password and a file is given, first
 	password := c.PostValue("password")
-	if password == "" {
+	if len(password) < 1 {
 		NewAPIError("Failed to retrieve password", errors.New("password was not set")).Throw(c, 400)
 		return
 	}

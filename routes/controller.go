@@ -38,8 +38,8 @@ func (e *APIErrorMessage) Throw(c iris.Context, status int) {
 	c.JSON(e)
 }
 
-func (c *Controller) BuildPath(path string) string {
-	absPath, err := filepath.Abs(c.Settings.UploadsDirectory + "/" + path)
+func (ctl *Controller) BuildPath(path string) string {
+	absPath, err := filepath.Abs(ctl.Settings.UploadsDirectory + "/" + path)
 	if err != nil {
 		logrus.Fatal("Failed to open directory: ", err)
 	}
